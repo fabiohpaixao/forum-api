@@ -20,7 +20,16 @@ class PostController {
    * Create/save a new post.
    * POST posts
    */
-  async store ({ request, response }) {
+  async store ({ auth, request, response }) {
+    const { id } = auth.user
+    const data = request.only([
+      'title',
+      'text'
+    ])
+  
+    const post = await Post.create({ ...data, user_id: id })
+  
+    return post
   }
 
   /**
@@ -31,6 +40,7 @@ class PostController {
     const posts = await Post.findOrFail(params.id);
 
     await posts.load('image')
+    await posts.load('comments')
 
     return posts;
   }
@@ -40,6 +50,18 @@ class PostController {
    * PUT or PATCH posts/:id
    */
   async update ({ params, request, response }) {
+    const post = await Post.findOrFail(params.id)
+  
+    const data = request.only([
+      'title',
+      'text'
+    ])
+  
+    post.merge(data)
+  
+    await post.save()
+  
+    return post
   }
 
   /**
